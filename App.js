@@ -1,13 +1,17 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import LoginForm  from './src/components/Login'
-import RegisterForm  from './src/components/Register'
+import SignInLogingFlowNavigation from './src/navigation/SignLoginNavigation'
+import RegisterScreen from './src/pages/Register'
+import LoginScreen from './src/pages/Login'
+import firebaseApp from './src/utils/firebase'
 
 export default function App() {
+
+ 
+  
   return (
     <View style={styles.container}>
-      <RegisterForm></RegisterForm>
+      <RegisterScreen></RegisterScreen>
     </View>
   );
 }
