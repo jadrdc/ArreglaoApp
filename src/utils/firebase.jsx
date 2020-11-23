@@ -1,4 +1,4 @@
-import firebase from 'firebase/app'
+import firebase from 'firebase'
 
 
 var firebaseConfig = {
@@ -12,7 +12,9 @@ var firebaseConfig = {
     measurementId: "G-4GST2HYDBR"
   };
   // Initialize Firebase
-  export const firebaseApp=firebase.initializeApp(firebaseConfig);
+  //export const firebaseApp=firebase.initializeApp(firebaseConfig);
 
-
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
   

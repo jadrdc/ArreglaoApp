@@ -5,9 +5,7 @@ import { Input, Button, Text } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scrollview'
 import * as firebase from 'firebase'
 import firebaseApp from '../utils/firebase'
-import "firebase/firestore"
-import "firebase"
-const db = firebase.firestore(firebaseApp);
+const db = firebase.database()
 
 import Loading from './Loading'
 
@@ -26,6 +24,7 @@ export default function LoginForm() {
         );
     }
     const login = async () => {
+
         var isValid = true;
         setIsloading(true)
 
@@ -37,26 +36,26 @@ export default function LoginForm() {
             setErrorEmail("No se puede dejar este campo vacio")
             isValid = false
         }
+
         if (isValid) {
             await firebase.auth().signInWithEmailAndPassword(user.email, user.password)
-                .then((user) => {
-                await  db.collection("users")
-                        .where("email","==","qwerty@gmail.com").limit(1).get()
-                         .then((snapshot)=>{
-                        console.log(snapshot.data());
-                         }).catch((err=>{
-                            showMessage("Error","Error iniciando sesión")
-                         }));
+                .then((signUpUser) => {
+                    db.ref('/users/' + signUpUser.user.email.replace(".", "")).once('value').then((snapshot) => {
+                        var data = snapshot.val()
+                        var root = Object.keys(data)
+                        console.log( data[root])
+                    }).catch((err => {
+                        showMessage("Error", "Error iniciando sesión")
+                    }));
                     setIsloading(false)
                 }).catch((err) => {
                     setIsloading(false)
                     showMessage("Error", err.message)
                 })
-        } else 
-        {
-                setIsloading(false)
+        } else {
+            setIsloading(false)
         }
-}
+    }
 
     const resetPassword = async () => {
         await firebase.auth().sendPasswordResetEmail("jadrdc@gmail.com").then(
