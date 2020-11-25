@@ -1,69 +1,82 @@
 import React, { useState, useEffect } from 'react';
-import { View, Image, StyleSheet, Alert, Switch,useEffect ,useState} from 'react-native'
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { Input, Button, Text, ListItem } from 'react-native-elements';
-import * as firebase from 'firebase'
-import firebaseApp from '../utils/firebase'
-const db = firebase.database()
+import { View, Image, StyleSheet, FlatList, Text, TouchableOpacity } from 'react-native'
+import { Card } from 'react-native-elements'
+import { getServices } from '../services/UserServices'
 
-export default function HomeCateogry(props) {
+export default function HomeCategory(props) {
 
-    const [menu,setMenu]=useState([])
+    const [menu, setMenu] = useState([])
 
+    useEffect(() => {
+        getServices(setMenu)
+    }, [])
 
-    useEffect(()=>
+    const goServiceListOffer=()=>
     {
-        async function getServices() {
-            await db.ref('/servicios').once('value').then((snapshot) => {
-                var list = snapshot.val()
-                var keys = Object.keys(list)
-                var services = []
-                keys.forEach(element => {
-                    var root = list[element]
-                    if(root.id==2)
-                    {root.isChecked=false
-                    }
-                    else{
-                        root.isChecked=true
-                    }services.push(root)
-                  //  checkList.push(false)
-                })
-                setServices(services)
-            });
+        props.navigation.navigate('Lista de Servicios')
+    }
 
 
-        }
-        getServices()
-    
-
-    },[])
-   
-
-
-
-
-
-    return (<View>
-     
+    return (<View style={styles.root}>
+        <View>
+            <Image source={require("../../assets/logofinal.png")}
+                resizeMode="contain"
+                style={styles.logo} />
+        </View>
+        <FlatList data={menu}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item, index }) =>
+                <TouchableOpacity
+                 onPress={goServiceListOffer}>
+                    <Card containerStyle={styles.cardStyle} >
+                        <View style={styles.container}>
+                            <Image source={{ uri: item.url }}
+                                resizeMode="contain"
+                                style={styles.icon} />
+                            <Text containerStyle={styles.textContainer}
+                                style={styles.textFooter}>{item.name}</Text>
+                        </View>
+                    </Card>
+                </TouchableOpacity>}
+        />
     </View>)
 
 }
 
 const styles = StyleSheet.create({
-    textHeader:
+    icon: {
+        width: "55%",
+        height: 100
+    }, logo: {
+        width: "55%",
+        marginTop: 20,
+        marginLeft: 20,
+        height: 150
+    }, header: {
+        marginTop: 20,
+        width: "100%",
+        color: "#008ba3"
+    },
+    root:
     {
-        color: "#008ba3",
-        margin: 8,
-        fontWeight: "bold"
+        flexDirection: "column",
+        flex: 1
+
+    },
+    container: {
+        marginRight: 16,
+        flexDirection: "row",
+        backgroundColor: '#fff',
+        alignItems: 'center'
+    }, cardStyle: {
+        marginTop: 8
     },
     textFooter:
     {
-        margin: 8
-    },
-    footer: {
-        flex: 1,
-        flexDirection: "row"
+        textAlign: "center",
+        color: "#008ba3",
+        fontWeight: "bold",
+        fontSize: 20
     }
-
 });
 

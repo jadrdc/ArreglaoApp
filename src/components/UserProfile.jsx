@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { StyleSheet, View, Text } from 'react-native'
 import { ListItem, Avatar } from 'react-native-elements'
 import { map } from 'lodash'

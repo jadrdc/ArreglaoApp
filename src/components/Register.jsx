@@ -1,22 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, Alert, Switch, FlatList, SafeAreaView } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { Input, Button, Text, ButtonGroup, CheckBox, ThemeProvider } from 'react-native-elements';
+import { Input, Button, Text, ButtonGroup, CheckBox } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scrollview'
 import DateTimePicker from '@react-native-community/datetimepicker';
-import firebaseApp from '../utils/firebase'
+import { getServices, registerUser } from '../services/UserServices'
 import Loading from './Loading'
 import * as firebase from 'firebase'
-import { useEffect } from 'react';
-const db = firebase.database()
 import { filter } from 'lodash'
 const sex = ["Masculino", "Femenino"]
 const academicGrade = ["Primaria", "Secundaria", "Universitario"]
 const dateToday = new Date();
+var navigation = null
 
 export default class RegisterForm extends React.Component {
-
     constructor(props) {
+        console.log(props)
         super(props)
         this.state = {
             isShownDate: false,
@@ -37,26 +36,12 @@ export default class RegisterForm extends React.Component {
             serviceList: [],
             checkList: false
         }
+        navigation = props.navigation
     }
 
-    async componentDidMount() {
-        await db.ref('/servicios').once('value').then((snapshot) => {
-            var list = snapshot.val()
-            var keys = Object.keys(list)
-            var services = []
-            keys.forEach(element => {
-                var root = list[element]
-                if (root.id == 2) {
-                    root.isChecked = false
-                }
-                else {
-                    root.isChecked = true
-                } services.push(root)
-                //  checkList.push(false)
-            })
-            this.setState({ serviceList: services })
-        })
 
+    async componentDidMount() {
+        getServices(this.updateUI)
 
     }
     handleChange = (index) => {
@@ -64,6 +49,10 @@ export default class RegisterForm extends React.Component {
         this.setState({ checkList: true });
 
 
+    }
+
+    updateUI = (services) => {
+        this.setState({ serviceList: services })
     }
 
     setSexInfo = (index) => {
@@ -90,9 +79,9 @@ export default class RegisterForm extends React.Component {
         this.setState({ isProfesional: value });
     }
 
-
-
-
+    cancelSignUp = () => {
+        navigation.goBack()
+    }
 
     signUpAccount = async () => {
         var isValid = true;
@@ -140,38 +129,30 @@ export default class RegisterForm extends React.Component {
         var services = []
         if (this.state.isProfesional) {
             services = filter(this.state.serviceList, (serviceSelected) => serviceSelected.isChecked)
+            user.services = services;
         }
 
 
 
         if (isValid) {
+
             await firebase.auth().createUserWithEmailAndPassword(this.state.user.email,
                 this.state.user.password)
                 .then(response => {
-                    db.ref('/users/' + this.state.user.email.replace(".", "")).push({
-                        academic: this.state.user.academic,
-                        address: this.state.user.address,
-                        email: this.state.user.email,
-                        isProfesional: this.state.user.isProfesional,
-                        name: this.state.user.name,
-                        nationality: this.state.user.nationality,
-                        password: this.state.user.password,
-                        phoneNumber: this.state.user.phoneNumber,
-                        sex: this.state.user.sex,
-                        service:services,
-                        birthdate:this.state.birthdate
-                    }
-                    ).then(() => {
-                        this.setState({ isLoading: false });
-                        this.showMessage("Informacion", "Usuario Creado exitosamente")
-                    }).catch(() => {
-                        this.setState({ isLoading: false });
-                        this.showMessage("Error", "Error creando usuario")
-                    })
+                    registerUser(this.state.user)
+                    .then(() => {
+                            this.setState({ isLoading: false });
+                            this.showMessage("Informacion", "Usuario Creado exitosamente")
+                            navigation.navigate("Home")
+                        }).catch((error) => {
+                            this.setState({ isLoading: false });
+                            this.showMessage("Error", "Error creando usuario "+error.message)
+                        })
                 }).catch(err => {
                     this.setState({ isLoading: false });
                     this.showMessage("Error creando una cuenta", err.message)
                 })
+
         } else {
             this.setState({ isLoading: false });
         }
@@ -333,18 +314,18 @@ export default class RegisterForm extends React.Component {
                     />
                 </View>
                 {(this.state.isProfesional) && (
-                    <SafeAreaView style={{ flex: 1 }}>
+                    <SafeAreaView style={{ flex: 1, alignItems: "flex-start" }}>
                         <FlatList data={this.state.serviceList}
                             extraData={this.state.checkList}
                             keyExtractor={(item, index) => index.toString()}
                             renderItem={({ item, index }) =>
-                                <CheckBox
+                                <View style={{ flex: 1, alignItems: "flex-start" }}><CheckBox
                                     containerStyle={styles.checkBoxStyle}
                                     title={item.name}
                                     onPress={() => this.handleChange(index)}
                                     checked={item.isChecked}
                                     checkedColor='#008ba3'
-                                />
+                                /></View>
                             }
                         /></SafeAreaView>
                 )}
@@ -356,6 +337,7 @@ export default class RegisterForm extends React.Component {
                         buttonStyle={styles.btnLogin} />
 
                     <Button title="Cancelar"
+                        onPress={this.cancelSignUp}
                         containerStyle={styles.btnContainerEnd}
                         buttonStyle={styles.btnLogin} />
                 </View>
@@ -372,7 +354,8 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        marginTop: 80
+        margin: 20
+
     }, logo: {
         width: "100%",
         marginTop: 40,

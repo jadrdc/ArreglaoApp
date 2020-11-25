@@ -1,7 +1,6 @@
-import firebase from 'firebase'
+import firebase from 'firebase/app'
 
-
-var firebaseConfig = {
+const firebaseConfig = {
     apiKey: "AIzaSyDijnXhVwrEcGrcPnPO7sk1i9nlGqkrX5I",
     authDomain: "arreglaoapp-a76dc.firebaseapp.com",
     databaseURL: "https://arreglaoapp-a76dc.firebaseio.com",
@@ -14,7 +13,7 @@ var firebaseConfig = {
   // Initialize Firebase
   //export const firebaseApp=firebase.initializeApp(firebaseConfig);
 
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
   
+const firebaseApp=  firebase.initializeApp(firebaseConfig);
+
+export default firebaseApp

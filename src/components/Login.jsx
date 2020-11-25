@@ -3,18 +3,22 @@ import { View, Image, StyleSheet, Alert } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Input, Button, Text } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scrollview'
-import * as firebase from 'firebase'
-import firebaseApp from '../utils/firebase'
-const db = firebase.database()
-
 import Loading from './Loading'
+import { loginUser } from '../services/UserServices'
+import firebaseApp from '../utils/firebase'
+import * as firebase from 'firebase'
 
-export default function LoginForm() {
+
+export default function LoginForm(props) {
     const [user, setUser] = useState({})
     const [errorEmail, setErrorEmail] = useState()
     const [errorPassword, setErrorPassword] = useState()
     const [isLoading, setIsloading] = useState(false)
 
+    const signUp=()=>
+    {
+        props.navigation.navigate('Register')
+    }
     const showMessage = (title, text) => {
         Alert.alert(title, text,
             [
@@ -23,6 +27,12 @@ export default function LoginForm() {
             { cancelable: false }
         );
     }
+
+
+
+
+
+
     const login = async () => {
 
         var isValid = true;
@@ -40,7 +50,9 @@ export default function LoginForm() {
         if (isValid) {
             await firebase.auth().signInWithEmailAndPassword(user.email, user.password)
                 .then((signUpUser) => {
-                    db.ref('/users/' + signUpUser.user.email.replace(".", "")).once('value').then((snapshot) => {
+
+                loginUser(user.email).t
+    /*                db.ref('/users/' + signUpUser.user.email.replace(".", "")).once('value').then((snapshot) => {
                         var data = snapshot.val()
                         var root = Object.keys(data)
                         console.log( data[root])
@@ -48,22 +60,13 @@ export default function LoginForm() {
                         showMessage("Error", "Error iniciando sesión")
                     }));
                     setIsloading(false)
-                }).catch((err) => {
+                */}).catch((err) => {
                     setIsloading(false)
                     showMessage("Error", err.message)
                 })
         } else {
             setIsloading(false)
         }
-    }
-
-    const resetPassword = async () => {
-        await firebase.auth().sendPasswordResetEmail("jadrdc@gmail.com").then(
-            () => {
-                console.log("CORREO ENVIADO");
-            }).catch((err) => {
-                showMessage("Error", "Error enviando link de reiniciar contraseña")
-            })
     }
 
 
@@ -113,7 +116,7 @@ export default function LoginForm() {
                     buttonStyle={styles.btnLogin}
                     onPress={login} />
 
-                <Text h5 style={styles.TextButtonStyle}>No tienes cuenta con nosotros?  Registrate </Text>
+                <Text onPress={signUp} h5 style={styles.TextButtonStyle}>No tienes cuenta con nosotros?  Registrate </Text>
 
             </View>
         </KeyboardAwareScrollView>);
@@ -124,7 +127,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        marginTop: 20
+        margin: 20
     }, logo: {
         width: "100%",
         marginTop: 40,
