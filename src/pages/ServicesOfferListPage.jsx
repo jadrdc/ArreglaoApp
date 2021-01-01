@@ -1,9 +1,9 @@
 import React from 'react';
 import ServicesOfferList  from '../components/ServicesOfferList'
 
-export default function ServiceOfferListPage() {
+export default function ServiceOfferListPage(props) {
   return (
-    <ServicesOfferList />
+    <ServicesOfferList navigation={props.navigation} params={props.route.params}/>
   );
 }
 

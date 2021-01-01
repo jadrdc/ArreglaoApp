@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { Input, Button, Text } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scrollview'
 import Loading from './Loading'
-import { loginUser } from '../services/UserServices'
+import { loginUser ,saveUser} from '../services/UserServices'
 import firebaseApp from '../utils/firebase'
 import * as firebase from 'firebase'
 
@@ -15,8 +15,7 @@ export default function LoginForm(props) {
     const [errorPassword, setErrorPassword] = useState()
     const [isLoading, setIsloading] = useState(false)
 
-    const signUp=()=>
-    {
+    const signUp = () => {
         props.navigation.navigate('Register')
     }
     const showMessage = (title, text) => {
@@ -51,16 +50,26 @@ export default function LoginForm(props) {
             await firebase.auth().signInWithEmailAndPassword(user.email, user.password)
                 .then((signUpUser) => {
 
-                loginUser(user.email).t
-    /*                db.ref('/users/' + signUpUser.user.email.replace(".", "")).once('value').then((snapshot) => {
-                        var data = snapshot.val()
-                        var root = Object.keys(data)
-                        console.log( data[root])
-                    }).catch((err => {
-                        showMessage("Error", "Error iniciando sesión")
-                    }));
-                    setIsloading(false)
-                */}).catch((err) => {
+                    loginUser(user.email).then((response) => {
+                        setIsloading(false)
+                        const userLog=response.data()
+
+                        saveUser(userLog).then(()=>{  
+                            props.navigation.replace('Home',{
+                                isProfesional:userLog.isProfesional
+                            })
+                        }).catch((err) => {
+                            setIsloading(false)
+                            showMessage("Error", err.message)
+                        })
+
+                     
+
+                    }).catch((err) => {
+                        setIsloading(false)
+
+                    })
+                }).catch((err) => {
                     setIsloading(false)
                     showMessage("Error", err.message)
                 })

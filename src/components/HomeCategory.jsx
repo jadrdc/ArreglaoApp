@@ -1,19 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { View, Image, StyleSheet, FlatList, Text, TouchableOpacity } from 'react-native'
 import { Card } from 'react-native-elements'
-import { getServices } from '../services/UserServices'
+import { getServices ,loadUser} from '../services/UserServices'
 
 export default function HomeCategory(props) {
 
     const [menu, setMenu] = useState([])
+    const [isVisible, setIsvisible] = useState(false)
+
 
     useEffect(() => {
-        getServices(setMenu)
+    
+        loadUser().then((result => {
+            const data = result != null ? JSON.parse(result) : null
+            if (data.isProfesional == false) {
+               getServices(setMenu)
+            }
+            else {
+                setIsvisible(true)
+            }
+        })).catch((err) => {
+        });
+    //    getServices(setMenu)
+    
+    
+    
     }, [])
 
-    const goServiceListOffer=()=>
+    const goServiceListOffer=(category)=>
     {
-        props.navigation.navigate('Lista de Servicios')
+        props.navigation.navigate('Lista de Servicios',{
+            categoryId: category   ,
+            user:props.user       })
     }
 
 
@@ -23,11 +41,14 @@ export default function HomeCategory(props) {
                 resizeMode="contain"
                 style={styles.logo} />
         </View>
+        { isVisible && (<Text style={styles.textFooter} Visible={isVisible}>Estas en un perfil de freelancer,inicia sesion como cliente</Text>
+        )
+        }
         <FlatList data={menu}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item, index }) =>
                 <TouchableOpacity
-                 onPress={goServiceListOffer}>
+                 onPress={ ()=>goServiceListOffer(item.id)}>
                     <Card containerStyle={styles.cardStyle} >
                         <View style={styles.container}>
                             <Image source={{ uri: item.url }}

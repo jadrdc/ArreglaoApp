@@ -1,11 +1,38 @@
-import React from 'react'
-import { StyleSheet, View, Text } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import { StyleSheet, View, ScrollView } from 'react-native'
 import { ListItem, Avatar } from 'react-native-elements'
 import { map } from 'lodash'
+import { loadUser, logout } from '../services/UserServices'
 
 export default function UserProfile(props) {
 
-    const { name, email, nationality, phoneNumber, address, sex, birthdate } = props.user
+    const [name, setName] = useState()
+    const [email, setEmail] = useState()
+    const [phoneNumber, setPhone] = useState()
+    const [address, setAddress] = useState()
+    const [sex, setSex] = useState()
+    const [nationality, setNationality] = useState()
+    const [birthdate, setBirthdate] = useState()
+
+    useEffect(() => {
+        if (name == null) {
+            loadUser().then((result => {
+                const data = result != null ? JSON.parse(result) : null
+                setName(data.name)
+                setAddress(data.address)
+                setEmail(data.email)
+                setPhone(data.phoneNumber)
+                setSex(data.sex)
+                setNationality(data.nationality)
+                setBirthdate(data.birthdate)
+
+            })).catch((err) => {
+            })
+        }
+    }, [])
+
+
+
     const menuOptions = generateOptions()
 
     function generateOptions() {
@@ -15,46 +42,54 @@ export default function UserProfile(props) {
             iconNameLeft: "account-circle",
             iconColorLeft: "#ff8c00",
         }, {
-            title:  email ,
+            title: email,
             iconType: "material-community",
             iconNameLeft: "at",
             iconColorLeft: "#ff8c00"
         }, {
-            title:  birthdate ,
+            title: birthdate,
             iconType: "material-community",
             iconNameLeft: "calendar",
             iconColorLeft: "#ff8c00"
         }, {
-            title:  phoneNumber ,
+            title: phoneNumber,
             iconType: "material-community",
             iconNameLeft: "phone",
             iconColorLeft: "#ff8c00"
         }, {
-            title:  sex ,
+            title: sex,
             iconType: "material-community",
             iconNameLeft: "gender-male-female",
             iconColorLeft: "#ff8c00"
         }, {
-            title:  nationality ,
+            title: nationality,
             iconType: "material-community",
             iconNameLeft: "home-city",
             iconColorLeft: "#ff8c00"
         }
             , {
-            title:  address ,
+            title: address,
             iconType: "material-community",
             iconNameLeft: "map-marker",
             iconColorLeft: "#ff8c00"
+        }, {
+            title: "Cerrar Sesion",
+            iconType: "material-community",
+            iconNameLeft: "logout",
+            iconColorLeft: "#ff8c00",
+            onPress: () => {
+                logout()
+                props.navigation.goBack()
+            }
         }
         ]
     }
 
-    return (<View style={styles.viewStyle}>
+    return (<ScrollView style={styles.viewStyle}>
         <Avatar
             size="xlarge"
             rounded
             icon={{ name: 'user', color: 'white', type: 'font-awesome' }}
-            onPress={() => console.log("Works!")}
             activeOpacity={0.7}
         />
         {
@@ -77,13 +112,13 @@ export default function UserProfile(props) {
             )
             )}
 
-    </View>)
+    </ScrollView>)
 }
 const styles = StyleSheet.create({
 
     titleColor: {
-      color: "#008ba3",
-      fontWeight:"bold"
+        color: "#008ba3",
+        fontWeight: "bold"
     },
     viewStyle: {
         marginTop: 24,

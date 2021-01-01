@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 const Stack = createStackNavigator();
 import LoginPage from '../pages/LoginPage'
 import RegisterPage from '../pages/RegisterPage'
-import ServiceNavigation from './ServiceNavigation'
+import HomeNavigation from './HomeNavigation'
 
 
 export default function MainNavigation() {
@@ -16,10 +16,15 @@ export default function MainNavigation() {
         },
     };
     return (
-        <NavigationContainer theme={MyTheme}>
+        <NavigationContainer theme={MyTheme} screenOptions={{
+            headerShown: false
+        }}>
             <Stack.Navigator>
                 <Stack.Screen name="Login" component={LoginPage} />
                 <Stack.Screen name="Register" component={RegisterPage} />
+                <Stack.Screen name="Home" component={HomeNavigation} options={{
+                    headerShown: false
+                }} />
             </Stack.Navigator>
         </NavigationContainer>
     )

@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { Input, Button, Text, ButtonGroup, CheckBox } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scrollview'
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { getServices, registerUser } from '../services/UserServices'
+import { getServices, registerUser, saveUser } from '../services/UserServices'
 import Loading from './Loading'
 import * as firebase from 'firebase'
 import { filter } from 'lodash'
@@ -15,7 +15,6 @@ var navigation = null
 
 export default class RegisterForm extends React.Component {
     constructor(props) {
-        console.log(props)
         super(props)
         this.state = {
             isShownDate: false,
@@ -39,7 +38,9 @@ export default class RegisterForm extends React.Component {
         navigation = props.navigation
     }
 
-
+    onSelectDate = () => {
+        this.setState({ isShownDate: true })
+    }
     async componentDidMount() {
         getServices(this.updateUI)
 
@@ -126,10 +127,14 @@ export default class RegisterForm extends React.Component {
             this.setState({ errorBirthdate: "No se puede dejar este campo vacio" });
             isValid = false
         }
+        else {
+            this.state.user.birthdate = this.state.birthdate
+        }
         var services = []
         if (this.state.isProfesional) {
             services = filter(this.state.serviceList, (serviceSelected) => serviceSelected.isChecked)
-            user.services = services;
+            this.state.user.services = services;
+            this.state.user.isProfesional=true
         }
 
 
@@ -139,14 +144,17 @@ export default class RegisterForm extends React.Component {
             await firebase.auth().createUserWithEmailAndPassword(this.state.user.email,
                 this.state.user.password)
                 .then(response => {
-                    registerUser(this.state.user)
-                    .then(() => {
-                            this.setState({ isLoading: false });
-                            this.showMessage("Informacion", "Usuario Creado exitosamente")
-                            navigation.navigate("Home")
-                        }).catch((error) => {
-                            this.setState({ isLoading: false });
-                            this.showMessage("Error", "Error creando usuario "+error.message)
+                   registerUser(this.state.user)
+                        .then(() => {
+                          saveUser(this.state.user).then(() => {
+                                this.setState({ isLoading: false });
+                                this.showMessage("Informacion", "Usuario Creado exitosamente")
+                                navigation.replace("Home")
+                            }).catch((error) => {
+                                this.setState({ isLoading: false });
+                                this.showMessage("Error", "Error creando usuario " + error.message)
+                            })
+
                         })
                 }).catch(err => {
                     this.setState({ isLoading: false });
@@ -230,26 +238,12 @@ export default class RegisterForm extends React.Component {
                     display="default"
                 />)}
 
-                <Input
-                    placeholder="Eliga su fecha de nacimiento"
-                    containerStyle={styles.InputForm}
-                    value={this.state.birthdate}
-
-                    errorStyle={{ color: '#ff8c00' }}
-                    errorMessage={this.state.errorBirthdate}
-                    inputStyle={styles.inputStyle}
-                    leftIcon={<Icon type="material-community"
-                        name="calendar"
-                        size={18}
-                        iconStyle={styles.iconRight}
-                        onPress={() => {
-                            this.setState({ errorBirthdate: null });
-                            if (this.state.isShownDate == false) {
-                                this.setState({ isShownDate: true });
-                            }
-                        }} />}
-                />
-
+                <View style={{ flex: 1, flexDirection: "row" ,alignSelf:"flex-start"}}>
+                    <Button onPress={this.onSelectDate} 
+                    containerStyle={styles.btnContainerEnd}
+                    title="Elegir Fecha"></Button>
+                    <Text style={{ textAlign: "center", alignSelf: "center" }}>{this.state.birthdate}</Text>
+                </View>
                 <Input placeholder="Número teléfonico"
                     keyboardType="numeric"
                     errorMessage={this.state.errorPhone}
